@@ -51,3 +51,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/personality', [AdminController::class, 'getPersonality']);
     Route::put('/admin/personality', [AdminController::class, 'updatePersonality']);
 });
+Route::options('{any}', function() { return response('', 200); })->where('any', '.*');
