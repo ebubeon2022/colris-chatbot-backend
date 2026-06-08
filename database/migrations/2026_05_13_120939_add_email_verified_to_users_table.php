@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('email_verified')->default(false)->after('role');
+            $table->boolean('email_verified')->default(false);
         });
     }
 
