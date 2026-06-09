@@ -50,17 +50,18 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        dispatch(function() use ($request, $otp, $user) {
-            try {
-                Mail::to($request->email)->send(new OtpMail($otp, $user->name));
-            } catch (\Exception $e) {
-                \Log::error('Mail failed: ' . $e->getMessage());
-            }
-        })->afterResponse();
+        $mailSent = false;
+        try {
+            Mail::to($request->email)->send(new OtpMail($otp, $user->name));
+            $mailSent = true;
+        } catch (\Exception $e) {
+            \Log::error('Mail failed: ' . $e->getMessage());
+        }
 
         return response()->json([
-            'message' => 'OTP sent to your email',
+            'message' => 'Registration successful',
             'email' => $request->email,
+            'otp_hint' => $mailSent ? null : $otp,
         ]);
     }
 
@@ -117,15 +118,18 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        dispatch(function() use ($request, $otp, $user) {
-            try {
-                Mail::to($request->email)->send(new OtpMail($otp, $user->name));
-            } catch (\Exception $e) {
-                \Log::error('Mail failed: ' . $e->getMessage());
-            }
-        })->afterResponse();
+        $mailSent = false;
+        try {
+            Mail::to($request->email)->send(new OtpMail($otp, $user->name));
+            $mailSent = true;
+        } catch (\Exception $e) {
+            \Log::error('Mail failed: ' . $e->getMessage());
+        }
 
-        return response()->json(['message' => 'OTP resent successfully']);
+        return response()->json([
+            'message' => 'OTP resent',
+            'otp_hint' => $mailSent ? null : $otp,
+        ]);
     }
 
     public function login(Request $request)
