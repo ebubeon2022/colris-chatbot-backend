@@ -23,9 +23,7 @@ class AuthController extends Controller
 
         if ($request->input('admin_code', '') !== '') {
             if ($request->input('admin_code') !== env('ADMIN_REGISTRATION_CODE', 'COLRIS2025')) {
-                return response()->json([
-                    'message' => 'Invalid admin code. Please check the code and try again.'
-                ], 422);
+                return response()->json(['message' => 'Invalid admin code.'], 422);
             }
             $role = 'admin';
         }
@@ -43,7 +41,6 @@ class AuthController extends Controller
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         DB::table('otps')->where('email', $request->email)->delete();
-
         DB::table('otps')->insert([
             'email' => $request->email,
             'otp' => $otp,
@@ -53,11 +50,13 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        try {
-            Mail::to($request->email)->send(new OtpMail($otp, $request->name));
-        } catch (\Exception $e) {
-            \Log::error('Mail failed: ' . $e->getMessage());
-        }
+        dispatch(function() use ($request, $otp, $user) {
+            try {
+                Mail::to($request->email)->send(new OtpMail($otp, $user->name));
+            } catch (\Exception $e) {
+                \Log::error('Mail failed: ' . $e->getMessage());
+            }
+        })->afterResponse();
 
         return response()->json([
             'message' => 'OTP sent to your email',
@@ -109,7 +108,6 @@ class AuthController extends Controller
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         DB::table('otps')->where('email', $request->email)->delete();
-
         DB::table('otps')->insert([
             'email' => $request->email,
             'otp' => $otp,
@@ -119,11 +117,13 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        try {
-            Mail::to($request->email)->send(new OtpMail($otp, $user->name));
-        } catch (\Exception $e) {
-            \Log::error('Mail failed: ' . $e->getMessage());
-        }
+        dispatch(function() use ($request, $otp, $user) {
+            try {
+                Mail::to($request->email)->send(new OtpMail($otp, $user->name));
+            } catch (\Exception $e) {
+                \Log::error('Mail failed: ' . $e->getMessage());
+            }
+        })->afterResponse();
 
         return response()->json(['message' => 'OTP resent successfully']);
     }
