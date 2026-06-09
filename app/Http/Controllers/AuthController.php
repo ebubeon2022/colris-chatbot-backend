@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 use App\Mail\OtpMail;
 
 class AuthController extends Controller
@@ -22,7 +22,7 @@ class AuthController extends Controller
         $role = 'student';
 
         if ($request->input('admin_code', '') !== '') {
-            if ($request->input('admin_code') !== 'COLRIS2025') {
+            if ($request->input('admin_code') !== env('ADMIN_REGISTRATION_CODE', 'COLRIS2025')) {
                 return response()->json([
                     'message' => 'Invalid admin code. Please check the code and try again.'
                 ], 422);
@@ -30,7 +30,6 @@ class AuthController extends Controller
             $role = 'admin';
         }
 
-        // Delete any existing unverified user with this email
         User::where('email', $request->email)->where('email_verified', false)->delete();
 
         $user = User::create([
@@ -41,13 +40,10 @@ class AuthController extends Controller
             'email_verified' => false,
         ]);
 
-        // Generate OTP
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        // Delete any existing OTP for this email
         DB::table('otps')->where('email', $request->email)->delete();
 
-        // Save OTP
         DB::table('otps')->insert([
             'email' => $request->email,
             'otp' => $otp,
@@ -57,13 +53,15 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        // Send OTP email
-        Mail::to($request->email)->send(new OtpMail($otp, $request->name));
+        try {
+            Mail::to($request->email)->send(new OtpMail($otp, $request->name));
+        } catch (\Exception $e) {
+            \Log::error('Mail failed: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'OTP sent to your email',
             'email' => $request->email,
-            'requires_otp' => true,
         ]);
     }
 
@@ -82,27 +80,19 @@ class AuthController extends Controller
             ->first();
 
         if (!$otpRecord) {
-            return response()->json(['message' => 'Invalid or expired OTP. Please try again.'], 422);
+            return response()->json(['message' => 'Invalid or expired OTP'], 422);
         }
 
-        // Mark OTP as used
         DB::table('otps')->where('id', $otpRecord->id)->update(['used' => true]);
+        DB::table('users')->where('email', $request->email)->update(['email_verified' => true]);
 
-        // Verify user
         $user = User::where('email', $request->email)->first();
-        $user->email_verified = true;
-        $user->save();
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
+            'message' => 'Email verified successfully',
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-            ]
+            'user' => $user,
         ]);
     }
 
@@ -110,14 +100,16 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->where('email_verified', false)->first();
+
         if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
+            return response()->json(['message' => 'User not found or already verified'], 422);
         }
 
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         DB::table('otps')->where('email', $request->email)->delete();
+
         DB::table('otps')->insert([
             'email' => $request->email,
             'otp' => $otp,
@@ -127,13 +119,22 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        Mail::to($request->email)->send(new OtpMail($otp, $user->name));
+        try {
+            Mail::to($request->email)->send(new OtpMail($otp, $user->name));
+        } catch (\Exception $e) {
+            \Log::error('Mail failed: ' . $e->getMessage());
+        }
 
         return response()->json(['message' => 'OTP resent successfully']);
     }
 
     public function login(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -141,19 +142,15 @@ class AuthController extends Controller
         }
 
         if (!$user->email_verified) {
-            return response()->json(['message' => 'Please verify your email first.', 'requires_otp' => true, 'email' => $user->email], 403);
+            return response()->json(['message' => 'Please verify your email first'], 401);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
+            'message' => 'Login successful',
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-            ]
+            'user' => $user,
         ]);
     }
 
