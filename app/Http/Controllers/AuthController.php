@@ -58,7 +58,7 @@ class AuthController extends Controller
         ]);
 
         // Send OTP email
-        Mail::to($request->email)->queue(new OtpMail($otp, $request->name));
+        Mail::to($request->email)->send(new OtpMail($otp, $request->name));
 
         return response()->json([
             'message' => 'OTP sent to your email',
@@ -127,7 +127,7 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        Mail::to($request->email)->queue(new OtpMail($otp, $user->name));
+        Mail::to($request->email)->send(new OtpMail($otp, $user->name));
 
         return response()->json(['message' => 'OTP resent successfully']);
     }
