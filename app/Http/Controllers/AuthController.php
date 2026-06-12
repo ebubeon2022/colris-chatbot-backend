@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OtpMail;
 
 class AuthController extends Controller
 {
@@ -82,11 +84,63 @@ class AuthController extends Controller
 
     public function verifyOtp(Request $request)
     {
-        return response()->json(['message' => 'OK']);
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|string',
+        ]);
+
+        $otpRecord = DB::table('otps')
+            ->where('email', $request->email)
+            ->where('otp', $request->otp)
+            ->where('used', false)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$otpRecord) {
+            return response()->json(['message' => 'Invalid or expired OTP'], 422);
+        }
+
+        DB::table('otps')->where('id', $otpRecord->id)->update(['used' => true]);
+        DB::table('users')->where('email', $request->email)->update(['email_verified' => true]);
+
+        $user = User::where('email', $request->email)->first();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Email verified successfully',
+            'token' => $token,
+            'user' => $user,
+        ]);
     }
 
     public function resendOtp(Request $request)
     {
-        return response()->json(['message' => 'OK']);
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->where('email_verified', false)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found or already verified'], 422);
+        }
+
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        DB::table('otps')->where('email', $request->email)->delete();
+        DB::table('otps')->insert([
+            'email' => $request->email,
+            'otp' => $otp,
+            'expires_at' => now()->addMinutes(10),
+            'used' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        try {
+            Mail::to($request->email)->send(new OtpMail($otp, $user->name));
+        } catch (\Exception $e) {
+            \Log::error('Mail failed: ' . $e->getMessage());
+        }
+
+        return response()->json(['message' => 'OTP resent successfully']);
     }
 }
