@@ -15,7 +15,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|unique:users',
+            'email' => 'required|string|email',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
@@ -28,6 +28,14 @@ class AuthController extends Controller
             ], 422);
         }
 
+        // Delete any unverified account with this email first
+        User::where('email', $email)->where('email_verified', false)->delete();
+
+        // Now check if a verified account exists
+        if (User::where('email', $email)->where('email_verified', true)->exists()) {
+            return response()->json(['message' => 'This email is already registered. Please sign in.'], 422);
+        }
+
         $role = 'student';
         if ($request->input('admin_code', '') !== '') {
             if ($request->input('admin_code') !== env('ADMIN_REGISTRATION_CODE', 'COLRIS2025')) {
@@ -35,8 +43,6 @@ class AuthController extends Controller
             }
             $role = 'admin';
         }
-
-        User::where('email', $email)->where('email_verified', false)->delete();
 
         $user = User::create([
             'name' => $request->name,
