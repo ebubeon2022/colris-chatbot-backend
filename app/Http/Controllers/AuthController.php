@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
 use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 use App\Mail\OtpMail;
 
 class AuthController extends Controller
@@ -29,7 +29,6 @@ class AuthController extends Controller
         }
 
         $role = 'student';
-
         if ($request->input('admin_code', '') !== '') {
             if ($request->input('admin_code') !== env('ADMIN_REGISTRATION_CODE', 'COLRIS2025')) {
                 return response()->json(['message' => 'Invalid admin code.'], 422);
@@ -37,49 +36,38 @@ class AuthController extends Controller
             $role = 'admin';
         }
 
+        User::where('email', $email)->where('email_verified', false)->delete();
+
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
+            'email' => $email,
             'password' => Hash::make($request->password),
             'role' => $role,
-            'email_verified' => true,
+            'email_verified' => false,
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        return response()->json([
-            'message' => 'Registration successful',
-            'token' => $token,
-            'user' => $user,
-        ]);
-    }
-
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
+        DB::table('otps')->where('email', $email)->delete();
+        DB::table('otps')->insert([
+            'email' => $email,
+            'otp' => $otp,
+            'expires_at' => now()->addMinutes(10),
+            'used' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        try {
+            Mail::to($email)->send(new OtpMail($otp, $user->name));
+        } catch (\Exception $e) {
+            \Log::error('Mail failed: ' . $e->getMessage());
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
-            'message' => 'Login successful',
-            'token' => $token,
-            'user' => $user,
+            'message' => 'OTP sent to your email',
+            'email' => $email,
         ]);
-    }
-
-    public function logout(Request $request)
-    {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logged out successfully']);
     }
 
     public function verifyOtp(Request $request)
@@ -142,5 +130,37 @@ class AuthController extends Controller
         }
 
         return response()->json(['message' => 'OTP resent successfully']);
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        if (!$user->email_verified) {
+            return response()->json(['message' => 'Please verify your email first'], 401);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token,
+            'user' => $user,
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+        return response()->json(['message' => 'Logged out successfully']);
     }
 }
