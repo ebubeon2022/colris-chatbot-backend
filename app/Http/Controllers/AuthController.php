@@ -17,6 +17,15 @@ class AuthController extends Controller
             'password' => 'required|string|min:6|confirmed',
         ]);
 
+        $email = $request->input('email');
+        $allowedDomains = ['stu.cu.edu.ng', 'covenantuniversity.edu.ng'];
+        $emailDomain = substr(strrchr($email, '@'), 1);
+        if (!in_array($emailDomain, $allowedDomains)) {
+            return response()->json([
+                'message' => 'Only Covenant University email addresses are allowed (@stu.cu.edu.ng or @covenantuniversity.edu.ng).'
+            ], 422);
+        }
+
         $role = 'student';
 
         if ($request->input('admin_code', '') !== '') {
