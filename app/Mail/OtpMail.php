@@ -12,26 +12,22 @@ class OtpMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public string $otp;
-    public string $name;
+    public $otp;
+    public $userName;
 
-    public function __construct(string $otp, string $name)
+    public function __construct($otp, $userName)
     {
         $this->otp = $otp;
-        $this->name = $name;
+        $this->userName = $userName;
     }
 
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: 'Your COLRIS Verification Code',
-        );
+        return new Envelope(subject: 'Your COLRIS Verification Code');
     }
 
     public function content(): Content
     {
-        return new Content(
-            view: 'emails.otp',
-        );
+        return new Content(view: 'emails.otp');
     }
 }
