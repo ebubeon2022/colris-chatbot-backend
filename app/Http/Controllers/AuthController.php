@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use App\Models\User;
 use App\Mail\OtpMail;
 
@@ -65,7 +64,8 @@ class AuthController extends Controller
         ]);
 
         try {
-            Mail::to($email)->send(new OtpMail($otp, $user->name));
+            $mail = new OtpMail($otp, $user->name, $email);
+            $mail->send();
         } catch (\Exception $e) {
             \Log::error('Mail failed: ' . $e->getMessage());
         }
@@ -130,7 +130,8 @@ class AuthController extends Controller
         ]);
 
         try {
-            Mail::to($request->email)->send(new OtpMail($otp, $user->name));
+            $mail = new OtpMail($otp, $user->name, $request->email);
+            $mail->send();
         } catch (\Exception $e) {
             \Log::error('Mail failed: ' . $e->getMessage());
         }
