@@ -24,7 +24,7 @@
       <p>Covenant University Library System</p>
     </div>
     <div class="body">
-      <h2>Hello, {{ $name }}!</h2>
+      <h2>Hello, {{ $userName }}!</h2>
       <p>Use the code below to verify your email address. It expires in 10 minutes.</p>
       <div class="otp-code">
         <span>{{ $otp }}</span>
