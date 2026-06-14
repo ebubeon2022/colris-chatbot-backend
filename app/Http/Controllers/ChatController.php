@@ -213,15 +213,32 @@ You are speaking with: " . $user->name . " (Student)";
             'updated_at' => now(),
         ]);
 
-        // Detect if the AI response is a fallback (couldn't understand the query)
+        // Detect fallback: query has no library-related keywords
+        $libraryKeywords = [
+            'book', 'books', 'borrow', 'borrowing', 'library', 'hours', 'open',
+            'fine', 'fines', 'return', 'renew', 'catalogue', 'colris', 'journal',
+            'database', 'resource', 'search', 'access', 'loan', 'card', 'account',
+            'staff', 'librarian', 'reading', 'study', 'research', 'reference',
+            'floor', 'section', 'computer', 'print', 'copy', 'photocopy', 'wifi',
+            'internet', 'e-book', 'ebook', 'thesis', 'project', 'assignment',
+            'reserve', 'reservation', 'overdue', 'penalty', 'lost', 'damage',
+            'membership', 'register', 'id', 'student', 'academic', 'title',
+            'author', 'publisher', 'isbn', 'subject', 'topic', 'find', 'locate',
+        ];
+        $isFallback = true;
+        $queryLower = strtolower($userMessage);
+        foreach ($libraryKeywords as $keyword) {
+            if (str_contains($queryLower, $keyword)) {
+                $isFallback = false;
+                break;
+            }
+        }
+        // Also check AI response for explicit fallback phrases
         $fallbackPhrases = [
             "i don't understand", "i'm not sure", "i cannot help",
             "could you rephrase", "please rephrase", "not able to help",
-            "outside my knowledge", "i don't have information",
-            "i'm unable to", "cannot process", "not familiar with",
-            "beyond my ability", "i apologize", "i am sorry, i",
+            "outside my knowledge", "i'm unable to", "beyond my ability",
         ];
-        $isFallback = false;
         $replyLower = strtolower($botReply);
         foreach ($fallbackPhrases as $phrase) {
             if (str_contains($replyLower, $phrase)) {
