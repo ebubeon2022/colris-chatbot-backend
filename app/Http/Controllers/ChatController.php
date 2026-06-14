@@ -215,11 +215,11 @@ You are speaking with: " . $user->name . " (Student)";
 
         // Detect if the AI response is a fallback (couldn't understand the query)
         $fallbackPhrases = [
-            'i don't understand', 'i'm not sure', 'i cannot help',
-            'could you rephrase', 'please rephrase', 'not able to help',
-            'outside my knowledge', 'i don't have information',
-            'i'm unable to', 'cannot process', 'not familiar with',
-            'beyond my ability', 'i apologize', 'i am sorry, i',
+            "i don't understand", "i'm not sure", "i cannot help",
+            "could you rephrase", "please rephrase", "not able to help",
+            "outside my knowledge", "i don't have information",
+            "i'm unable to", "cannot process", "not familiar with",
+            "beyond my ability", "i apologize", "i am sorry, i",
         ];
         $isFallback = false;
         $replyLower = strtolower($botReply);
