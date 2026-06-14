@@ -213,9 +213,27 @@ You are speaking with: " . $user->name . " (Student)";
             'updated_at' => now(),
         ]);
 
+        // Detect if the AI response is a fallback (couldn't understand the query)
+        $fallbackPhrases = [
+            'i don't understand', 'i'm not sure', 'i cannot help',
+            'could you rephrase', 'please rephrase', 'not able to help',
+            'outside my knowledge', 'i don't have information',
+            'i'm unable to', 'cannot process', 'not familiar with',
+            'beyond my ability', 'i apologize', 'i am sorry, i',
+        ];
+        $isFallback = false;
+        $replyLower = strtolower($botReply);
+        foreach ($fallbackPhrases as $phrase) {
+            if (str_contains($replyLower, $phrase)) {
+                $isFallback = true;
+                break;
+            }
+        }
+
         return response()->json([
             'reply' => $botReply,
-            'session_id' => $sessionId
+            'session_id' => $sessionId,
+            'is_fallback' => $isFallback,
         ]);
     }
 
