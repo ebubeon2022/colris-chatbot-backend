@@ -122,6 +122,11 @@ ADMIN-ONLY INFORMATION:
 - You can help with staff workflows, cataloguing and library management tasks
 - Always remind staff they can update settings in the Admin Panel
 
+INSTRUCTIONS — follow these tiers:
+TIER 1 — LIBRARY/ADMIN QUESTIONS: Answer fully with internal data and COLRIS links where relevant.
+TIER 2 — GENERAL KNOWLEDGE QUESTIONS: Answer directly and helpfully like a knowledgeable academic assistant. Do not restrict yourself to library topics only.
+TIER 3 — QUESTIONS YOU CANNOT ANSWER: Politely explain and suggest the appropriate resource.
+
 You are speaking with: " . $user->name . " (Staff/Admin)";
         } else {
             $systemPrompt = "You are " . $aiName . ", an intelligent library assistant for Covenant University COLRIS library system.
@@ -147,13 +152,25 @@ COLRIS CATALOGUE SEARCH: Use this format when students ask about specific books 
 https://colris.covenantuniversity.edu.ng/discovery/search?query=any,contains,TOPIC&tab=Everything&search_scope=MyInst_and_CI&vid=234COU_INST:VU1&lang=en&offset=0
 Replace TOPIC with just the subject or book title (not the full sentence).
 
-INSTRUCTIONS:
-- Only provide a COLRIS link when the student is specifically asking for a book or resource
-- For general questions (hours, policies, contact), just answer directly without links
-- Be conversational and helpful - don't just dump links
-- If a student asks about a book, extract just the topic/title for the search URL
-- Keep responses concise and clear
+INSTRUCTIONS — follow these tiers strictly:
+
+TIER 1 — LIBRARY QUESTIONS (about books, COLRIS, borrowing, hours, fines, databases, library facilities):
+- Answer fully using the library knowledge base and settings above
+- Provide a COLRIS search link when the student asks for a book or resource
+- Extract just the topic/title for the search URL, not the full sentence
 - Do NOT share other students personal information or internal stock details
+
+TIER 2 — GENERAL KNOWLEDGE QUESTIONS (history, science, geography, current affairs, definitions, Covenant University info, academic concepts):
+- Answer directly and helpfully like a knowledgeable academic assistant
+- Do NOT provide COLRIS links for general knowledge questions
+- Do NOT say you can only help with library matters
+- Keep answers concise, accurate, and academically appropriate
+- Examples: who invented the telephone, what is machine learning, who is the VC of Covenant University, what is the capital of France, explain photosynthesis
+
+TIER 3 — QUESTIONS YOU CANNOT ANSWER (personal advice, medical diagnosis, legal advice, requests for harmful content, things requiring real-time data you don't have):
+- Politely explain you cannot help with that specific request
+- Suggest they speak to the appropriate person or service
+- Do NOT attempt to answer if you genuinely don't know
 
 You are speaking with: " . $user->name . " (Student)";
         }
@@ -213,7 +230,17 @@ You are speaking with: " . $user->name . " (Student)";
             'updated_at' => now(),
         ]);
 
-        // Detect fallback: query has no library-related keywords
+        // Detect fallback: only trigger handoff for truly unanswerable queries
+        // General knowledge questions should NOT trigger the handoff card
+        $generalKnowledgeKeywords = [
+            'who', 'what', 'when', 'where', 'why', 'how', 'which', 'define',
+            'explain', 'tell me', 'describe', 'meaning', 'history', 'capital',
+            'president', 'founder', 'invented', 'discovered', 'wrote', 'author',
+            'country', 'continent', 'science', 'biology', 'chemistry', 'physics',
+            'math', 'geography', 'economics', 'language', 'culture', 'university',
+            'covenant', 'vc', 'vice chancellor', 'professor', 'department', 'college',
+            'nigeria', 'africa', 'world', 'theory', 'concept', 'algorithm',
+        ];
         $libraryKeywords = [
             'book', 'books', 'borrow', 'borrowing', 'library', 'hours', 'open',
             'fine', 'fines', 'return', 'renew', 'catalogue', 'colris', 'journal',
@@ -227,13 +254,23 @@ You are speaking with: " . $user->name . " (Student)";
         ];
         $isFallback = true;
         $queryLower = strtolower($userMessage);
+        // Not a fallback if it's a library question
         foreach ($libraryKeywords as $keyword) {
             if (str_contains($queryLower, $keyword)) {
                 $isFallback = false;
                 break;
             }
         }
-        // Also check AI response for explicit fallback phrases
+        // Also not a fallback if it's a general knowledge question
+        if ($isFallback) {
+            foreach ($generalKnowledgeKeywords as $keyword) {
+                if (str_contains($queryLower, $keyword)) {
+                    $isFallback = false;
+                    break;
+                }
+            }
+        }
+        // Check AI response for explicit fallback phrases
         $fallbackPhrases = [
             "i don't understand", "i'm not sure", "i cannot help",
             "could you rephrase", "please rephrase", "not able to help",
