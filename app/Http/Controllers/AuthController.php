@@ -165,6 +165,38 @@ class AuthController extends Controller
         ]);
     }
 
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        $user = User::where('email', $request->email)->where('email_verified', true)->first();
+
+        if (!$user) {
+            // Don't reveal if email exists
+            return response()->json(['message' => 'If that email exists, a reset code has been sent.']);
+        }
+
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        DB::table('otps')->where('email', $request->email)->delete();
+        DB::table('otps')->insert([
+            'email' => $request->email,
+            'otp' => $otp,
+            'expires_at' => now()->addMinutes(10),
+            'used' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        try {
+            $mail = new OtpMail($otp, $user->name, $request->email);
+            $mail->send();
+        } catch (\Exception $e) {
+            \Log::error('Reset mail failed: ' . $e->getMessage());
+        }
+
+        return response()->json(['message' => 'If that email exists, a reset code has been sent.']);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

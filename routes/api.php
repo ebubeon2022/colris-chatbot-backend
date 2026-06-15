@@ -13,6 +13,7 @@ Route::get('/books/public', [AdminController::class, 'getPublicBooks']);
 Route::get('/books/new-arrivals', [AdminController::class, 'getNewArrivals']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
