@@ -348,6 +348,31 @@ You are speaking with: " . $user->name . " (Student)";
         }
     }
 
+    public function feedback(Request $request)
+    {
+        $request->validate([
+            'session_id' => 'required|string',
+            'message_index' => 'required|integer',
+            'feedback' => 'required|string|in:up,down',
+        ]);
+
+        $user = $request->user();
+
+        $messages = DB::table('conversations')
+            ->where('user_id', $user->id)
+            ->where('session_id', $request->session_id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        if (isset($messages[$request->message_index])) {
+            DB::table('conversations')
+                ->where('id', $messages[$request->message_index]->id)
+                ->update(['feedback' => $request->feedback]);
+        }
+
+        return response()->json(['message' => 'Feedback recorded.']);
+    }
+
     public function history(Request $request)
     {
         $user = $request->user();
