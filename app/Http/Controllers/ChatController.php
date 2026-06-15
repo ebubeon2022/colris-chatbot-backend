@@ -112,9 +112,9 @@ CONTACT:
 
 ANNOUNCEMENT: " . ($libraryInfo['library_announcement'] ?? '') . "
 
-COLRIS CATALOGUE SEARCH: Use this format when staff ask about specific books:
-https://colris.covenantuniversity.edu.ng/discovery/search?query=any,contains,TOPIC&tab=Everything&search_scope=MyInst_and_CI&vid=234COU_INST:VU1&lang=en&offset=0
-Replace TOPIC with just the subject or book title.
+COLRIS CATALOGUE SEARCH: When a user asks for a book or resource, generate a real working link by replacing KEYWORD with the actual search term. Example — if user asks for "data structures", use:
+https://colris.covenantuniversity.edu.ng/discovery/search?query=any,contains,data+structures&tab=Everything&search_scope=MyInst_and_CI&vid=234COU_INST:VU1&lang=en&offset=0
+NEVER use the word TOPIC literally in the link. Always substitute the real keyword.
 
 ADMIN-ONLY INFORMATION:
 - You can discuss book stock levels, borrowing records, overdue books and fines
@@ -148,9 +148,9 @@ CONTACT:
 
 ANNOUNCEMENT: " . ($libraryInfo['library_announcement'] ?? '') . "
 
-COLRIS CATALOGUE SEARCH: Use this format when students ask about specific books or topics:
-https://colris.covenantuniversity.edu.ng/discovery/search?query=any,contains,TOPIC&tab=Everything&search_scope=MyInst_and_CI&vid=234COU_INST:VU1&lang=en&offset=0
-Replace TOPIC with just the subject or book title (not the full sentence).
+COLRIS CATALOGUE SEARCH: When a user asks for a book or resource, generate a real working link by replacing KEYWORD with the actual search term. Example — if user asks for "machine learning", use:
+https://colris.covenantuniversity.edu.ng/discovery/search?query=any,contains,machine+learning&tab=Everything&search_scope=MyInst_and_CI&vid=234COU_INST:VU1&lang=en&offset=0
+NEVER use the word TOPIC literally in the link. Always substitute the real keyword from the user's question.
 
 INSTRUCTIONS — follow these tiers strictly:
 
