@@ -348,6 +348,24 @@ You are speaking with: " . $user->name . " (Student)";
         }
     }
 
+    public function adminFeedback(Request $request)
+    {
+        if ($request->user()->role !== 'admin') {
+            abort(403, 'Unauthorized');
+        }
+
+        $feedback = DB::table('conversations')
+            ->join('users', 'conversations.user_id', '=', 'users.id')
+            ->select('conversations.id', 'conversations.message', 'conversations.feedback', 'conversations.created_at', 'users.name as user_name', 'users.email as user_email')
+            ->whereNotNull('conversations.feedback')
+            ->where('conversations.sender', 'bot')
+            ->orderBy('conversations.created_at', 'desc')
+            ->limit(100)
+            ->get();
+
+        return response()->json(['feedback' => $feedback]);
+    }
+
     public function feedback(Request $request)
     {
         $request->validate([

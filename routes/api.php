@@ -16,6 +16,7 @@ Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/chat/feedback', [ChatController::class, 'feedback'])->middleware('auth:sanctum');
+Route::get('/admin/feedback', [ChatController::class, 'adminFeedback'])->middleware('auth:sanctum');
 
 // Book requests
 Route::post('/book-requests', [BookRequestController::class, 'store'])->middleware('auth:sanctum');
