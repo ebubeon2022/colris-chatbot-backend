@@ -112,9 +112,9 @@ CONTACT:
 
 ANNOUNCEMENT: " . ($libraryInfo['library_announcement'] ?? '') . "
 
-COLRIS CATALOGUE SEARCH: When a user asks for a book or resource, generate a real working link by replacing KEYWORD with the actual search term. Example — if user asks for "data structures", use:
+COLRIS CATALOGUE SEARCH: When a user asks for a book or resource, generate a real working link. Example for data structures:
 https://colris.covenantuniversity.edu.ng/discovery/search?query=any,contains,data+structures&tab=Everything&search_scope=MyInst_and_CI&vid=234COU_INST:VU1&lang=en&offset=0
-NEVER use the word TOPIC literally in the link. Always substitute the real keyword.
+NEVER use the word TOPIC literally in the link. Always substitute the real keyword from the user question.
 
 ADMIN-ONLY INFORMATION:
 - You can discuss book stock levels, borrowing records, overdue books and fines
@@ -148,9 +148,9 @@ CONTACT:
 
 ANNOUNCEMENT: " . ($libraryInfo['library_announcement'] ?? '') . "
 
-COLRIS CATALOGUE SEARCH: When a user asks for a book or resource, generate a real working link by replacing KEYWORD with the actual search term. Example — if user asks for "machine learning", use:
+COLRIS CATALOGUE SEARCH: When a user asks for a book or resource, generate a real working link. Example for machine learning:
 https://colris.covenantuniversity.edu.ng/discovery/search?query=any,contains,machine+learning&tab=Everything&search_scope=MyInst_and_CI&vid=234COU_INST:VU1&lang=en&offset=0
-NEVER use the word TOPIC literally in the link. Always substitute the real keyword from the user's question.
+NEVER use the word TOPIC literally in the link. Always substitute the real keyword from the user question.
 
 INSTRUCTIONS — follow these tiers strictly:
 
