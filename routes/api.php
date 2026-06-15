@@ -3,6 +3,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookRequestController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\AdminController;
 
@@ -14,6 +15,12 @@ Route::get('/books/new-arrivals', [AdminController::class, 'getNewArrivals']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
+// Book requests
+Route::post('/book-requests', [BookRequestController::class, 'store'])->middleware('auth:sanctum');
+Route::get('/book-requests/my', [BookRequestController::class, 'myRequests'])->middleware('auth:sanctum');
+Route::get('/admin/book-requests', [BookRequestController::class, 'index'])->middleware('auth:sanctum');
+Route::put('/admin/book-requests/{id}', [BookRequestController::class, 'update'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
