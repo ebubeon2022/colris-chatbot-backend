@@ -299,6 +299,22 @@ You are speaking with: " . $user->name . " (Student)";
             'updated_at' => now(),
         ]);
 
+        // Direct human handoff triggers - always show handoff card
+        $directHandoffPhrases = [
+            'talk to a librarian', 'speak to a librarian', 'contact a librarian',
+            'talk to human', 'speak to human', 'human help', 'real person',
+            'talk to someone', 'speak to someone', 'need a human',
+        ];
+        foreach ($directHandoffPhrases as $phrase) {
+            if (str_contains(strtolower($userMessage), $phrase)) {
+                return response()->json([
+                    'reply' => 'I will connect you with a librarian right away. Please click the button below to reach the Covenant University Library team directly.',
+                    'session_id' => $sessionId,
+                    'is_fallback' => true,
+                ]);
+            }
+        }
+
         // Detect fallback: only trigger handoff for truly unanswerable queries
         // General knowledge questions should NOT trigger the handoff card
         $generalKnowledgeKeywords = [
