@@ -198,7 +198,7 @@ IMPORTANT: Never use the generic search URL for journals, newspapers, databases 
 
 INSTRUCTIONS — follow these tiers strictly:
 
-RESPONSE LENGTH RULE: Keep ALL responses concise — maximum 3 short paragraphs. Do not pad responses with unnecessary suggestions or repeated information. Get to the point quickly.
+RESPONSE LENGTH RULE: Keep ALL responses concise — maximum 2 short paragraphs. Provide ONE link only. NEVER make up statistics, numbers or data you do not actually have. Get to the point quickly.
 
 ABOUT THIS SYSTEM: If a user asks what you can do, what the app does, or how to use it, give this response:
 I am the COLRIS Library AI Assistant for Covenant University. Here is what I can help you with:
@@ -361,7 +361,7 @@ You are speaking with: " . $user->name . " (Student)";
 
     private function extractTopic($query, $removeWords)
     {
-        $clean = strtolower(trim($query));
+        $clean = trim($query);
         foreach ($removeWords as $word) {
             $clean = preg_replace('/\b' . preg_quote($word, '/') . '\b/i', '', $clean);
         }
