@@ -15,6 +15,7 @@ Route::get('/books/new-arrivals', [AdminController::class, 'getNewArrivals']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/change-password', [AuthController::class, 'changePassword'])->middleware('auth:sanctum');
 Route::post('/chat/feedback', [ChatController::class, 'feedback'])->middleware('auth:sanctum');
 Route::get('/admin/feedback', [ChatController::class, 'adminFeedback'])->middleware('auth:sanctum');
 
