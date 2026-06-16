@@ -40,6 +40,7 @@ class AdminController extends Controller
             'total_messages' => $totalMessages,
             'total_sessions' => $totalSessions,
             'total_books' => $totalBooks,
+            'total_book_requests' => DB::table('book_requests')->count(),
             'new_arrivals' => $newArrivals,
             'knowledge_entries' => $knowledgeEntries,
             'messages_today' => $messagesToday,
