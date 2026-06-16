@@ -68,11 +68,11 @@ class ChatController extends Controller
         $colrisUrl = '';
 
         if (str_contains($msgLower, 'journal') || str_contains($msgLower, 'article') || str_contains($msgLower, 'paper')) {
-            $topic = $this->extractTopic($userMessage, ['journal', 'journals', 'article', 'articles', 'paper', 'papers', 'find', 'need', 'get', 'me', 'some', 'academic', 'i']);
-            $colrisUrl = 'https://colris.covenantuniversity.edu.ng/discovery/jsearch?' . ($topic ? 'query=any,contains,' . urlencode($topic) . '&' : '') . 'vid=234COU_INST:VU1&lang=en';
+            $topic = $this->extractTopic($userMessage, ['journal', 'journals', 'article', 'articles', 'paper', 'papers', 'find', 'need', 'get', 'me', 'some', 'academic', 'i', 'on', 'about', 'for']);
+            $colrisUrl = 'https://colris.covenantuniversity.edu.ng/discovery/jsearch?' . ($topic ? 'query=any,contains,' . rawurlencode($topic) . '&' : '') . 'vid=234COU_INST:VU1&lang=en';
         } elseif (str_contains($msgLower, 'newspaper') || str_contains($msgLower, 'news')) {
-            $topic = $this->extractTopic($userMessage, ['newspaper', 'newspapers', 'news', 'find', 'need', 'get', 'me', 'some', 'i']);
-            $colrisUrl = 'https://colris.covenantuniversity.edu.ng/discovery/npsearch?' . ($topic ? 'query=any,contains,' . urlencode($topic) . '&' : '') . 'vid=234COU_INST:VU1&lang=en';
+            $topic = $this->extractTopic($userMessage, ['newspaper', 'newspapers', 'news', 'find', 'need', 'get', 'me', 'some', 'i', 'on', 'about', 'for']);
+            $colrisUrl = 'https://colris.covenantuniversity.edu.ng/discovery/npsearch?' . ($topic ? 'query=any,contains,' . rawurlencode($topic) . '&' : '') . 'vid=234COU_INST:VU1&lang=en';
         } elseif (str_contains($msgLower, 'database') || str_contains($msgLower, 'e-resource') || str_contains($msgLower, 'eresource')) {
             $colrisUrl = 'https://colris.covenantuniversity.edu.ng/discovery/dbsearch?vid=234COU_INST:VU1&lang=en';
         } elseif (str_contains($msgLower, 'browse') || str_contains($msgLower, 'subject') || str_contains($msgLower, 'author')) {
