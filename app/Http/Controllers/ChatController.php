@@ -62,8 +62,16 @@ class ChatController extends Controller
         $aiTone = $libraryInfo['ai_tone'] ?? 'professional and helpful';
         $aiRestrictions = $libraryInfo['ai_restrictions'] ?? '';
 
-        // Generate COLRIS search URL
-        $colrisUrl = $this->generateColrisUrl($userMessage);
+        // Generate COLRIS search URL - only for book searches, not for specific resource types
+        $specificResourceKeywords = ['journal', 'journals', 'newspaper', 'newspapers', 'database', 'databases', 'browse', 'new arrival', 'latest book', 'curated', 'collection'];
+        $isSpecificResource = false;
+        foreach ($specificResourceKeywords as $kw) {
+            if (stripos($userMessage, $kw) !== false) {
+                $isSpecificResource = true;
+                break;
+            }
+        }
+        $colrisUrl = $isSpecificResource ? '' : $this->generateColrisUrl($userMessage);
 
         // Book search
         $bookResults = '';
