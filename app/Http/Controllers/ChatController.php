@@ -63,15 +63,27 @@ class ChatController extends Controller
         $aiRestrictions = $libraryInfo['ai_restrictions'] ?? '';
 
         // Generate COLRIS search URL - only for book searches, not for specific resource types
-        $specificResourceKeywords = ['journal', 'journals', 'newspaper', 'newspapers', 'database', 'databases', 'browse', 'new arrival', 'latest book', 'curated', 'collection'];
-        $isSpecificResource = false;
-        foreach ($specificResourceKeywords as $kw) {
-            if (stripos($userMessage, $kw) !== false) {
-                $isSpecificResource = true;
-                break;
-            }
+        // Detect specific resource types and generate appropriate COLRIS URL
+        $msgLower = strtolower($userMessage);
+        $colrisUrl = '';
+
+        if (str_contains($msgLower, 'journal') || str_contains($msgLower, 'article') || str_contains($msgLower, 'paper')) {
+            $topic = $this->extractTopic($userMessage, ['journal', 'journals', 'article', 'articles', 'paper', 'papers', 'find', 'need', 'get', 'me', 'some', 'academic', 'i']);
+            $colrisUrl = 'https://colris.covenantuniversity.edu.ng/discovery/jsearch?' . ($topic ? 'query=any,contains,' . urlencode($topic) . '&' : '') . 'vid=234COU_INST:VU1&lang=en';
+        } elseif (str_contains($msgLower, 'newspaper') || str_contains($msgLower, 'news')) {
+            $topic = $this->extractTopic($userMessage, ['newspaper', 'newspapers', 'news', 'find', 'need', 'get', 'me', 'some', 'i']);
+            $colrisUrl = 'https://colris.covenantuniversity.edu.ng/discovery/npsearch?' . ($topic ? 'query=any,contains,' . urlencode($topic) . '&' : '') . 'vid=234COU_INST:VU1&lang=en';
+        } elseif (str_contains($msgLower, 'database') || str_contains($msgLower, 'e-resource') || str_contains($msgLower, 'eresource')) {
+            $colrisUrl = 'https://colris.covenantuniversity.edu.ng/discovery/dbsearch?vid=234COU_INST:VU1&lang=en';
+        } elseif (str_contains($msgLower, 'browse') || str_contains($msgLower, 'subject') || str_contains($msgLower, 'author')) {
+            $colrisUrl = 'https://colris.covenantuniversity.edu.ng/discovery/browse?vid=234COU_INST:VU1&lang=en';
+        } elseif (str_contains($msgLower, 'new arrival') || str_contains($msgLower, 'latest book') || str_contains($msgLower, 'recently added')) {
+            $colrisUrl = 'https://clr.covenantuniversity.edu.ng/';
+        } elseif (str_contains($msgLower, 'curated') || str_contains($msgLower, 'collection')) {
+            $colrisUrl = 'https://collections.clr.covenantuniversity.edu.ng/';
+        } else {
+            $colrisUrl = $this->generateColrisUrl($userMessage);
         }
-        $colrisUrl = $isSpecificResource ? '' : $this->generateColrisUrl($userMessage);
 
         // Book search
         $bookResults = '';
@@ -345,6 +357,16 @@ You are speaking with: " . $user->name . " (Student)";
             'session_id' => $sessionId,
             'is_fallback' => $isFallback,
         ]);
+    }
+
+    private function extractTopic($query, $removeWords)
+    {
+        $clean = strtolower(trim($query));
+        foreach ($removeWords as $word) {
+            $clean = preg_replace('/\b' . preg_quote($word, '/') . '\b/i', '', $clean);
+        }
+        $clean = trim(preg_replace('/\s+/', ' ', $clean));
+        return strlen($clean) > 2 ? $clean : '';
     }
 
     private function generateColrisUrl($query)
