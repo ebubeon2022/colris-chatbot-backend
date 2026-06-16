@@ -104,6 +104,8 @@ class AdminController extends Controller
         if ($user) {
             DB::table('otps')->where('email', $user->email)->delete();
             DB::table('personal_access_tokens')->where('tokenable_id', $id)->delete();
+            DB::table('book_requests')->where('user_id', $id)->delete();
+            DB::table('book_requests')->where('user_id', $id)->delete();
             DB::table('conversations')->where('user_id', $id)->delete();
         }
         DB::table('users')->where('id', $id)->delete();
